@@ -12,14 +12,14 @@ var createPIPService = require('../src/index.js').create;
 var layers = [
   //'continent',
   'country', // 216
-  //'county', // 18166
+  'county', // 18166
   'dependency', // 39
   'disputed', // 39
-  //'localadmin', // 106880
-  //'locality', // 160372
+  'localadmin', // 106880
+  'locality', // 160372
   'macrocounty', // 350
   'macroregion', // 82
-  //'neighbourhood', // 62936
+  'neighbourhood', // 62936
   'region' // 4698
 ];
 
@@ -47,8 +47,8 @@ createPIPService(layers, function (err, pipService) {
     var diff = deep(expected, results);
 
     if (diff) {
-      console.log('expected and actual output are the same');
-      console.log(diff);
+      console.log('expected and actual output are not the same');
+      //console.log(diff);
       process.exit(1);
     } else {
       console.log('expected and actual output are the same');

@@ -8,6 +8,7 @@ var logger = require( 'pelias-logger').get('admin-lookup:worker');
 var PolygonLookup = require('polygon-lookup');
 
 var readStream = require('./readStream');
+var geos = require('../../../node-geos/lib');
 
 var context = {
   adminLookup: null,// This worker's `PolygonLookup`.
@@ -42,10 +43,41 @@ function handleLoadMsg(msg) {
 
   readStream(msg.directory, msg.layer, function(features) {
     logger.info(features.length + ' ' + context.layer + ' record ids loaded in ' + elapsedTime());
-    logger.info(context.layer + ' finished building FeatureCollection in ' + elapsedTime());
 
-    context.featureCollection.features = features;
-    context.adminLookup = new PolygonLookup( context.featureCollection );
+    context.wktreader = new geos.WKTReader();
+    context.geojsonreader = new geos.GeoJSONReader();
+
+    context.geometries = features.map(function(feature) {
+      return {
+        type: feature.geometry.type,
+        // a hack because node-geos does not support features
+        // so hide the full feature in the geometry itself
+        feature: feature,
+        coordinates: feature.geometry.coordinates
+      };
+    });
+
+    context.geos_geometries = context.geometries.map(function(geometry) {
+      try {
+        var geos_geom = context.geojsonreader.read(geometry);
+        return geos_geom;
+      } catch (e) {
+        //console.log(JSON.stringify(geometry, null, 2));
+        console.log("error with geometry");
+        return undefined;
+      }
+    });
+
+    context.strtree = new geos.STRtree();
+
+    context.geos_geometries.forEach(function(geos_geometry) {
+      if (geos_geometry) {
+        context.strtree.insert(geos_geometry);
+      }
+    });
+    context.strtree.build();
+
+    logger.info(context.layer + ' finished building STRtree in ' + elapsedTime());
 
     // load countries up into an object keyed on id
     if ('country' === context.layer) {
@@ -59,9 +91,7 @@ function handleLoadMsg(msg) {
     logger.info(context.layer + ' finished loading ' + features.length + ' features in ' + elapsedTime());
 
     process.send( {type: 'loaded', layer: context.layer} );
-
   });
-
 }
 
 function handleSearch(msg) {
@@ -77,9 +107,13 @@ function handleSearch(msg) {
  * Search `adminLookup` for `latLon`.
  */
 function search( latLon ){
-  var poly = context.adminLookup.search( latLon.longitude, latLon.latitude );
+  var wkt = 'POINT( ' + latLon.longitude + ' ' + latLon.latitude + ')';
+  console.log("about to search " + wkt);
+  var point = context.wktreader.read(wkt);
+  var polys = context.strtree.query(point);
+  console.log("got results from query");
 
-  return (poly === undefined) ? {} : poly.properties;
+  return (polys[0] === undefined) ? {} : polys[0].feature.properties;
 }
 
 function handleLookupById(msg) {

@@ -6,7 +6,7 @@
   "scripts": {
     "download": "node src/downloadData.js",
     "start": "PELIAS_CONFIG=${PWD}/config.json node server.js",
-    "functional": "npm run functional",
+    "functional": "node test/functional.js",
     "test": "npm run units",
     "units": "node test/test | tap-dot"
   },

@@ -10,15 +10,15 @@ var inputData = require('./testData.json');
 var layers = [
   //'continent',
   'country', // 216
-  'county', // 18166
+  //'county', // 18166
   'dependency', // 39
   'disputed', // 39
-  'localadmin', // 106880
-  'locality', // 160372
+  //'localadmin', // 106880
+  //'locality', // 160372
   'macrocounty', // 350
   'macroregion', // 82
-  'neighbourhood', // 62936
-  'region' // 4698
+  //'neighbourhood', // 62936
+  //'region' // 4698
 ];
 
 var startTime = microtime.now();
