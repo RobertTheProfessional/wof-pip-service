@@ -8,7 +8,8 @@
     "start": "PELIAS_CONFIG=${PWD}/config.json node server.js",
     "functional": "node test/functional.js",
     "test": "npm run units",
-    "units": "node test/test | tap-dot"
+    "units": "node test/test | tap-dot",
+    "travis": "npm run test"
   },
   "author": "Mapzen",
   "license": "MIT",
