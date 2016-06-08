@@ -84,6 +84,10 @@ module.exports.create = function createPIPService(layers, callback) {
           var id = requestCount;
           requestCount++;
 
+          if (search_layers.length === 0) {
+            return responseCallback(null, []);
+          }
+
           if (responseQueue.hasOwnProperty(id)) {
             var msg = "Tried to create responseQueue item with id " + id + " that is already present";
             logger.error(msg);
